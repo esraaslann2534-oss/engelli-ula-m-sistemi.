@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ödeme Ekranı</title>
+
+  <style>
+    body { font-family: Arial; background:#eef2f3; }
+    .container {
+      max-width: 430px;
+      margin: auto;
+      padding: 25px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 { text-align:center; color:#4CAF50; }
+    button {
+      width: 100%; padding: 15px; margin-top: 10px;
+      background:#4CAF50; color:white; border:none;
+      border-radius:8px; font-size:17px; cursor:pointer;
+    }
+    button.red { background:red; }
+    .option { margin: 10px 0; }
+    label { display:block; font-size:18px; margin-bottom:8px; }
+  </style>
+</head>
+<body>
+
+<h1>Ödeme Sayfası</h1>
+
+<div class="container">
+  
+  <!-- Ödeme Seçenekleri -->
+  <div class="card">
+    <h2>Ödeme Yöntemi Seç</h2>
+
+    <div class="option">
+      <input type="radio" name="pay" id="cardPay" checked>
+      <label for="cardPay">💳 Kredi Kartı ile Ödeme</label>
+    </div>
+
+    <div class="option">
+      <input type="radio" name="pay" id="cashPay">
+      <label for="cashPay">💵 Nakit Ödeme</label>
+    </div>
+
+    <div class="option">
+      <input type="radio" name="pay" id="freePay">
+      <label for="freePay">♿ Engelli Kartı ile Ücretsiz</label>
+    </div>
+
+    <button onclick="completePayment()">Ödemeyi Tamamla</button>
+  </div>
+
+
+  <!-- SESLİ MENÜ -->
+  <div class="card">
+    <h2>Sesli Menü</h2>
+    <button onclick="readMenu()">Menüyü Sesli Oku</button>
+    <button onclick="startVoice()" style="background:#2980b9;">Ses Komutu ile Ödeme</button>
+  </div>
+
+  <!-- Acil Durum -->
+  <button class="red" onclick="emergency()">Acil Durum</button>
+
+</div>
+
+
+<script>
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  // 1) SESLİ MENÜ METNİ
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  const menuText = `
+    Ödeme sayfasındasınız.
+    Üç seçenek bulunmaktadır.
+    Kredi kartı ile ödeme.
+    Nakit ödeme.
+    Engelli kartı ile ücretsiz.
+    Sesli ödeme yapmak için 'Kredi Kartı', 'Nakit', ya da 'Ücretsiz' demeniz yeterlidir.
+  `;
+
+  function readMenu(){
+    speak(menuText);
+  }
+
+
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  // 2) SES KOMUTU İLE ÖDEME
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  function startVoice(){
+    speak("Lütfen ödeme yöntemini söyleyin. Kredi Kartı, Nakit veya Ücretsiz.");
+    
+    const rec = new webkitSpeechRecognition();
+    rec.lang = "tr-TR";
+    rec.start();
+
+    rec.onresult = (event) => {
+      const text = event.results[0][0].transcript.toLowerCase();
+
+      if(text.includes("kredi")){
+        document.getElementById("cardPay").checked = true;
+        speak("Kredi kartı ile ödeme seçildi.");
+      }
+      else if(text.includes("nakit")){
+        document.getElementById("cashPay").checked = true;
+        speak("Nakit ödeme seçildi.");
+      }
+      else if(text.includes("ücretsiz") || text.includes("engelli")){
+        document.getElementById("freePay").checked = true;
+        speak("Engelli kartı ile ücretsiz seçildi.");
+      }
+      else {
+        speak("Anlaşılamadı. Lütfen tekrar deneyin.");
+      }
+    };
+  }
+
+
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  // 3) Ödemeyi Tamamlama
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  function completePayment(){
+    let method = "Kredi Kartı";
+
+    if(document.getElementById("cashPay").checked) method = "Nakit";
+    if(document.getElementById("freePay").checked) method = "Ücretsiz";
+
+    localStorage.setItem("payment", method);
+
+    speak(method + " ile ödeme tamamlandı. Bilet oluşturuluyor.");
+    setTimeout(() => window.location.href = "ticket.html", 1500);
+  }
+
+
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  // 4) Acil Durum
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  function emergency(){
+    alert("Acil durum bildirildi!");
+    speak("Acil durum bildirildi! Yardım ekipleri yönlendirildi.");
+  }
+
+
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  // 5) Sesli Konuşma Fonksiyonu
+  // ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+  function speak(text){
+    const u = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(u);
+  }
+
+</script>
+
+</body>
+</html>

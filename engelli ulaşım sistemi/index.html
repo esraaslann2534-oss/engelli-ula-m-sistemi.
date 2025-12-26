@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Sesli Bilet Alma Sistemi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ font-family:'Segoe UI',Arial;
+ background:linear-gradient(135deg,#2563eb,#22c55e);
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ margin:0;
+ position:relative;
+}
+
+.box{
+ background:#ffffff;
+ padding:28px;
+ width:420px;
+ border-radius:20px;
+ box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+
+h2{
+ text-align:center;
+ color:#2563eb;
+ margin-bottom:10px;
+}
+
+p{
+ text-align:center;
+ font-size:13px;
+ color:#6b7280;
+ margin-bottom:20px;
+}
+
+.ticket-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:12px;
+ margin-bottom:15px;
+}
+
+.card{
+ background:#f9fafb;
+ border:1px solid #e5e7eb;
+ border-radius:14px;
+ padding:10px 12px;
+ box-shadow:0 6px 14px rgba(0,0,0,.08);
+}
+
+.card.full{
+ grid-column:1 / -1;
+}
+
+.price-card {
+ background: #eff6ff;
+ border: 2px dashed #2563eb;
+ text-align: center;
+}
+
+.price-card span {
+ font-weight: bold;
+ color: #2563eb;
+ font-size: 18px;
+}
+
+label{
+ display:block;
+ font-size:12px;
+ color:#6b7280;
+ margin-bottom:4px;
+}
+
+input, select{
+ width:100%;
+ padding:10px;
+ font-size:14px;
+ border-radius:8px;
+ border:1px solid #d1d5db;
+ outline:none;
+ transition:.2s;
+}
+
+input:focus, select:focus{
+ border-color:#2563eb;
+ box-shadow:0 0 0 2px rgba(37,99,235,.2);
+}
+
+button{
+ padding:12px;
+ border:none;
+ border-radius:12px;
+ font-size:15px;
+ cursor:pointer;
+ transition:.2s;
+}
+button:hover{opacity:.9}
+
+/* Buton renkleri */
+.voice{background:#2563eb;color:#fff;}
+.submit{background:#16a34a;color:#fff;}
+.assistant{background:#9333ea;color:#fff;}
+.emergency{background:#ef4444;color:#fff;}
+
+/* Buton grubu: yan yana */
+.button-row{
+ display:flex;
+ gap:10px;
+ margin-top:10px;
+}
+
+/* Asistan ve acil yardım sabit sağ alt */
+.floating-buttons{
+ position:fixed;
+ bottom:20px;
+ right:20px;
+ display:flex;
+ flex-direction:column;
+ gap:10px;
+ z-index:100;
+ width:120px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>🎟️ Sesli Bilet Alma</h2>
+<p>Mikrofona bas ve konuş veya manuel doldur</p>
+
+<div class="ticket-grid">
+
+ <div class="card full">
+  <label>Ad Soyad</label>
+  <input id="name" placeholder="Ad Soyad">
+ </div>
+
+ <div class="card">
+  <label>Başlangıç Şehri</label>
+  <select id="start" onchange="calculatePrice()">
+    <option value="">Seçiniz</option>
+    <option>İstanbul</option>
+    <option>Ankara</option>
+    <option>İzmir</option>
+    <option>Bursa</option>
+    <option>Adana</option>
+    <option>Antalya</option>
+    <option>Konya</option>
+    <option>Gaziantep</option>
+    <option>Kayseri</option>
+    <option>Eskişehir</option>
+    <option>Trabzon</option>
+    <option>Malatya</option>
+    <option>Samsun</option>
+    <option>Muğla</option>
+    <option>Balıkesir</option>
+  </select>
+ </div>
+
+ <div class="card">
+  <label>Hedef Şehir</label>
+  <select id="end" onchange="calculatePrice()">
+    <option value="">Seçiniz</option>
+    <option>İstanbul</option>
+    <option>Ankara</option>
+    <option>İzmir</option>
+    <option>Bursa</option>
+    <option>Adana</option>
+    <option>Antalya</option>
+    <option>Konya</option>
+    <option>Gaziantep</option>
+    <option>Kayseri</option>
+    <option>Eskişehir</option>
+    <option>Trabzon</option>
+    <option>Malatya</option>
+    <option>Samsun</option>
+    <option>Muğla</option>
+    <option>Balıkesir</option>
+  </select>
+ </div>
+
+ <div class="card">
+  <label>Tarih</label>
+  <input type="date" id="date">
+ </div>
+
+ <div class="card">
+  <label>Saat</label>
+  <input type="time" id="time">
+ </div>
+
+ <div class="card">
+  <label>Koltuk</label>
+  <select id="seat">
+    <option value="">Seçiniz</option>
+    <script>
+      for(let i=1;i<=40;i++){
+       document.write(`<option>${i}</option>`);
+      }
+    </script>
+  </select>
+ </div>
+
+ <div class="card">
+  <label>Ödeme</label>
+  <select id="payment">
+    <option value="">Seçiniz</option>
+    <option>Kart</option>
+    <option>Mobil</option>
+    <option>Engelli</option>
+  </select>
+ </div>
+
+ <div class="card full price-card">
+    <label>Toplam Ücret</label>
+    <span id="display-price">0 TL</span>
+ </div>
+
+</div>
+
+<div class="button-row">
+ <button class="voice" onclick="startVoice()">🎤 Sesli Doldur</button>
+ <button class="submit" onclick="createTicket()">✔ Bileti Oluştur</button>
+</div>
+
+</div>
+
+<div class="floating-buttons">
+ <button class="assistant" onclick="callAssistant()">🤖 Asistan</button>
+ <button class="emergency" onclick="emergencyHelp()">🚨 Acil</button>
+</div>
+
+<script>
+let step = 0;
+let currentPrice = 0;
+
+const fields = [
+ {id:"name", text:"Adınızı söyleyin"},
+ {id:"start", text:"Başlangıç şehrini söyleyin"},
+ {id:"end", text:"Hedef şehri söyleyin"},
+ {id:"date", text:"Tarihi söyleyin. Örnek 2025 12 30"},
+ {id:"time", text:"Saati söyleyin. Örnek 14 30"},
+ {id:"seat", text:"Koltuk numarasını söyleyin"},
+ {id:"payment", text:"Ödeme yöntemini söyleyin"}
+];
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.lang = "tr-TR";
+
+function speak(text){
+ const u = new SpeechSynthesisUtterance(text);
+ u.lang = "tr-TR";
+ speechSynthesis.speak(u);
+}
+
+// Ücret Hesaplama Fonksiyonu
+function calculatePrice() {
+    const start = document.getElementById("start").value;
+    const end = document.getElementById("end").value;
+    const priceDisplay = document.getElementById("display-price");
+
+    if(start && end) {
+        if(start === end) {
+            currentPrice = 0;
+            priceDisplay.innerText = "Şehirler aynı olamaz";
+        } else {
+            // Basit bir algoritma: Şehir isimlerinin uzunluk farkına göre fiyat uyduruyoruz
+            currentPrice = 400 + (Math.abs(start.length - end.length) * 50);
+            priceDisplay.innerText = currentPrice + " TL";
+        }
+    } else {
+        currentPrice = 0;
+        priceDisplay.innerText = "0 TL";
+    }
+}
+
+function startVoice(){
+ step = 0;
+ speak(fields[step].text);
+ recognition.start();
+}
+
+recognition.onresult = (e)=>{
+ let speech = e.results[0][0].transcript.toLowerCase();
+ let field = document.getElementById(fields[step].id);
+
+ if(field.tagName === "SELECT"){
+  for(let opt of field.options){
+   if(speech.includes(opt.value.toLowerCase()) && opt.value !== ""){
+    field.value = opt.value;
+    // Eğer şehir seçildiyse fiyatı güncelle
+    if(field.id === "start" || field.id === "end") calculatePrice();
+   }
+  }
+ } else if(field.type === "date"){
+  field.value = speech.replaceAll(" ","-");
+ } else if(field.type === "time"){
+  field.value = speech.replace(" ",":");
+ } else {
+  field.value = speech;
+ }
+
+ step++;
+ if(step < fields.length){
+  speak(fields[step].text);
+  recognition.start();
+ } else {
+    if(currentPrice > 0) {
+        speak("Bilgiler tamamlandı. Toplam bilet ücretiniz " + currentPrice + " Türk Lirasıdır.");
+    }
+ }
+};
+
+function createTicket(){
+ const nameField = document.getElementById("name");
+ const startField = document.getElementById("start");
+ const endField = document.getElementById("end");
+ const dateField = document.getElementById("date");
+ const timeField = document.getElementById("time");
+ const seatField = document.getElementById("seat");
+ const paymentField = document.getElementById("payment");
+
+ if(!nameField.value || !startField.value || !endField.value || !dateField.value || !timeField.value || !seatField.value || !paymentField.value){
+   alert("❗ Tüm alanları doldurun");
+   speak("Tüm alanları doldurun");
+   return;
+ }
+
+ if(startField.value === endField.value) {
+    alert("❗ Başlangıç ve hedef şehir aynı olamaz.");
+    return;
+ }
+
+ const ticket = {
+  name: nameField.value,
+  start: startField.value,
+  end: endField.value,
+  date: dateField.value,
+  time: timeField.value,
+  seat: seatField.value,
+  payment: paymentField.value,
+  price: currentPrice
+ };
+
+ localStorage.setItem("ticket", JSON.stringify(ticket));
+ speak("Biletiniz " + currentPrice + " lira bedelle oluşturuldu.");
+ window.location.href="bilet-ozet.html";
+}
+
+function callAssistant(){
+ speak("Asistan çağrıldı. Size yardımcı oluyorum.");
+ alert("🤖 Asistan çağrıldı!");
+}
+
+function emergencyHelp(){
+ speak("Acil yardım çağrılıyor!");
+ alert("🚨 Acil yardım çağrıldı!");
+}
+</script>
+
+</body>
+</html>

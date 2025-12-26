@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Bilet Özeti</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ font-family:'Segoe UI',Arial;
+ background:linear-gradient(135deg,#2563eb,#22c55e);
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ margin:0;
+}
+
+.box{
+ background:#ffffff;
+ padding:28px;
+ width:400px;
+ border-radius:20px;
+ box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+
+h2{
+ text-align:center;
+ color:#16a34a;
+ margin-bottom:22px;
+}
+
+.ticket-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:12px;
+}
+
+.card{
+ background:#f9fafb;
+ border:1px solid #e5e7eb;
+ border-radius:14px;
+ padding:12px;
+ box-shadow:0 6px 14px rgba(0,0,0,.08);
+}
+
+.card.full{
+ grid-column:1 / -1;
+}
+
+/* Ücret kartı için özel stil */
+.price-highlight {
+ background: #eff6ff;
+ border: 2px solid #2563eb;
+}
+
+.label{
+ font-size:12px;
+ color:#6b7280;
+ margin-bottom:4px;
+}
+
+.value{
+ font-size:15px;
+ font-weight:600;
+ color:#111827;
+}
+
+.price-value {
+ color: #2563eb;
+ font-size: 18px;
+}
+
+/* ❌ İPTAL BUTONU STİLİ */
+.cancel-card{
+ background:#ef4444;
+ border:none;
+ color:#fff;
+ text-align:center;
+ padding:14px;
+ border-radius:14px;
+ cursor:pointer;
+ font-weight:600;
+ transition: opacity 0.2s;
+ margin-top: 10px;
+}
+
+.cancel-card:hover {
+ opacity: 0.9;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>🎫 Bilet Özeti</h2>
+
+<div class="ticket-grid">
+
+ <div class="card full">
+  <div class="label">Ad Soyad</div>
+  <div class="value" id="name">-</div>
+ </div>
+
+ <div class="card">
+  <div class="label">Başlangıç</div>
+  <div class="value" id="start">-</div>
+ </div>
+
+ <div class="card">
+  <div class="label">Hedef</div>
+  <div class="value" id="end">-</div>
+ </div>
+
+ <div class="card">
+  <div class="label">Tarih</div>
+  <div class="value" id="date">-</div>
+ </div>
+
+ <div class="card">
+  <div class="label">Saat</div>
+  <div class="value" id="time">-</div>
+ </div>
+
+ <div class="card">
+  <div class="label">Koltuk</div>
+  <div class="value" id="seat">-</div>
+ </div>
+
+ <div class="card">
+  <div class="label">Ödeme</div>
+  <div class="value" id="payment">-</div>
+ </div>
+
+ <div class="card full price-highlight">
+  <div class="label">Toplam Bilet Ücreti</div>
+  <div class="value price-value" id="price">0 TL</div>
+ </div>
+
+ <div class="card full cancel-card" onclick="cancelTicket()">
+  ❌ Bileti İptal Et
+ </div>
+
+</div>
+</div>
+
+<script>
+// LocalStorage'dan bilet verisini çekiyoruz
+const t = JSON.parse(localStorage.getItem("ticket"));
+
+if(t){
+ document.getElementById("name").textContent = t.name;
+ document.getElementById("start").textContent = t.start;
+ document.getElementById("end").textContent = t.end;
+ document.getElementById("date").textContent = t.date;
+ document.getElementById("time").textContent = t.time;
+ document.getElementById("seat").textContent = t.seat;
+ document.getElementById("payment").textContent = t.payment;
+ 
+ // Ücret bilgisini ekrana yazdırıyoruz (Eğer veri yoksa varsayılan olarak 0 TL gösterir)
+ document.getElementById("price").textContent = (t.price || 0) + " TL";
+
+ // Sayfa açıldığında kısa bir sesli bilgilendirme yapalım
+ window.onload = () => {
+    const speak = (text) => {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = "tr-TR";
+        speechSynthesis.speak(u);
+    };
+    speak("Bilet özetiniz ekrandadır. Toplam ücretiniz " + (t.price || 0) + " liradır.");
+ };
+}
+
+/* ❌ BİLET İPTAL FONKSİYONU */
+function cancelTicket(){
+ if(confirm("Bileti iptal etmek istiyor musunuz?")){
+  localStorage.removeItem("ticket");
+  const u = new SpeechSynthesisUtterance("Biletiniz iptal edildi.");
+  u.lang = "tr-TR";
+  speechSynthesis.speak(u);
+  
+  alert("Bilet iptal edildi");
+  window.location.href="index.html"; // İlk sayfanın adı index.html değilse burayı değiştirebilirsiniz
+ }
+}
+</script>
+
+</body>
+</html>

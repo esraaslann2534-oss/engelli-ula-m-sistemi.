@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engelli Dostu Ulaşım – Yolculuk Bilgisi</title>
+
+<style>
+body{
+  font-family: Arial;
+  background:#eef2f3;
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.container{
+  max-width:430px;
+  width:100%;
+  padding:25px;
+}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 4px 12px rgba(0,0,0,.1);
+}
+h1{text-align:center;color:#4CAF50}
+h2{color:#444;margin-bottom:5px}
+.info-line{font-size:16px;margin:6px 0}
+#waitTime{font-size:20px;color:#d35400;font-weight:bold}
+button{
+  width:100%;
+  padding:15px;
+  background:#4CAF50;
+  border:none;
+  color:white;
+  border-radius:8px;
+  font-size:18px;
+  cursor:pointer;
+  margin-top:10px;
+}
+#assistant{background:#2980b9}
+#emergencyBtn{background:red}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Yolculuk Bilgisi</h1>
+
+<div class="card">
+<h2>Yolcu Bilgileri</h2>
+<div id="ticketInfo"></div>
+</div>
+
+<div class="card">
+<h2>Önerilen Otobüs Hattı</h2>
+<div id="route"></div>
+</div>
+
+<div class="card">
+<h2>Otobüs Bekleme Süresi</h2>
+<div id="waitTime">Hesaplanıyor...</div>
+</div>
+
+<button id="assistant">Asistan Çağır</button>
+<button id="emergencyBtn">Acil Durum</button>
+</div>
+
+<script>
+const name = localStorage.getItem("name") || "Bilinmiyor";
+const disability = localStorage.getItem("disability") || "Yok";
+const start = localStorage.getItem("start") || "Durak A";
+const end = localStorage.getItem("end") || "Durak D";
+const seat = localStorage.getItem("seat") || "-";
+const price = localStorage.getItem("price") || "-";
+
+ticketInfo.innerHTML = `
+<div class="info-line"><strong>Ad:</strong> ${name}</div>
+<div class="info-line"><strong>Engel:</strong> ${disability}</div>
+<div class="info-line"><strong>Başlangıç:</strong> ${start}</div>
+<div class="info-line"><strong>Hedef:</strong> ${end}</div>
+<div class="info-line"><strong>Koltuk:</strong> ${seat}</div>
+<div class="info-line"><strong>Ücret:</strong> ${price}</div>
+`;
+
+const busLines = [
+ { name:"Ramoa 1", stops:["Durak A","Durak B","Durak C","Durak D"], times:{ "Durak A":3,"Durak B":6,"Durak C":9,"Durak D":12 }},
+ { name:"Ramoa 2", stops:["Durak B","Durak C","Durak D"], times:{ "Durak B":5,"Durak C":8,"Durak D":11 }}
+];
+
+const accessibilityInfo = {
+ "Ramoa 1":{ ramp:true, wheelchairSpace:true },
+ "Ramoa 2":{ ramp:false, wheelchairSpace:false }
+};
+
+const bus = busLines.find(b => b.stops.includes(start) && b.stops.includes(end));
+
+if(bus){
+ route.innerHTML = `
+ <div class="info-line"><strong>Hat:</strong> ${bus.name}</div>
+ <div class="info-line"><strong>Rota:</strong> ${bus.stops.join(" → ")}</div>
+ `;
+
+ const wait = bus.times[start];
+ waitTime.textContent =
+  wait !== undefined
+  ? `${bus.name} hattı ${wait} dakika içinde durağınıza ulaşacak`
+  : "Bekleme süresi bulunamadı.";
+
+ const acc = accessibilityInfo[bus.name];
+ const card = document.createElement("div");
+ card.className="card";
+ card.innerHTML=`
+ <h2>Erişilebilirlik</h2>
+ <div class="info-line">Rampa: ${acc.ramp?"🟢 Var":"🔴 Yok"}</div>
+ <div class="info-line">Tekerlekli Sandalye: ${acc.wheelchairSpace?"🟢 Var":"🔴 Yok"}</div>
+ `;
+ document.querySelector(".container").insertBefore(card, assistant);
+
+ speak(acc.ramp ? "Otobüs erişilebilir." : "Otobüs tam erişilebilir değildir.");
+}else{
+ speak("Uygun otobüs hattı bulunamadı.");
+}
+
+assistant.onclick = ()=> speak("Görevli çağrıldı.");
+emergencyBtn.onclick = ()=> speak("Acil durum bildirildi.");
+
+function speak(msg){
+ const u=new SpeechSynthesisUtterance(msg);
+ u.lang="tr-TR";
+ speechSynthesis.speak(u);
+}
+</script>
+
+</body>
+</html>
